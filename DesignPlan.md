@@ -33,6 +33,23 @@ Limitations: AWS DMS needs to use MS-CDC for tables with or without primary keys
 # Network and security
 Lets explore some networking connectivity from Azure to AWS. 
 
+Azure Networks 
+- VNAT 10.10.0.0/16
+- GatewaySubnet 10.10.255.0/24
+- Virtual Network Gateway
+- Local Network Gateway
+- Network Security Groups
+- Azure Firewall within its own VNAT
+
+AWS Network 
+- VPC 10.20.0.0/16
+- rds-a subnet 10.20.0.0/24
+- rds-b subnet 10.20.1.0/24
+- rds-c subnet 10.20.2.0/24
+- Customer Gateway
+- Private VPN Gateway
+- S2S vpn connection
+
 # Migration plan
 
 
