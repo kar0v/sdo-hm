@@ -4,6 +4,7 @@
 - [Network and security](#network-and-security)
 - [Auxiliary services and considerations](#auxiliary-services-and-considerations)
 - [Migration plan](#migration-plan)
+- [Disaster Recovery / Rollback Plan](#disaster-recovery--rollback-plan)
 # Destination Database
 The two main options is to run MSSQL in AWS are either on a self-hosted set of EC2 instances or RDS. I would choose RDS anytime over EC2 instances unless there are client specific configurations that are not supported in RDS. <br><br> 
 **RDS** is easily scalable, configurable, manageable and monitorable as opposed to self-hosting clusters. It interracts with a ton of other AWS Services flawlessly. <br><br>
@@ -54,6 +55,8 @@ AWS Network
 - S2S vpn connection
 - Routes to VPN GW from local subnets
 - Traffic to the database is controlled via the RDS Security group, however for fine-tuning we can implement NACLs.
+- DMS 
+  ![alt text](images/DesignPlan/image.png)
 
 ![alt text](images/DesignPlan/Azure_to_AWS_MSSQL_Migration.drawio.svg)
 
@@ -85,14 +88,42 @@ RDS Parameter group - make the necessary configuration to mimic the production c
 7. Testing Phase
 &emsp;<br>- Run Manual/Automated functionality testing jobs and load testing.
 &emsp;<br>- Monitor performance over the current baseline. 
+&emsp;<br>- Data Integrity checks 
+      - Validate row counts, key constraints, and checksum values between source and target databases.
+      - Run queries to compare sample data and validate correctness.
+
 8.  Test Conclusion phase.<br>
     a) If any errors or unexpected and unwanted behaviors occur then roll back the connection to the AZ SQL DB and destroy current AWS infra. <br>
     b) If success, then promote current AWS infrastructure to production and disconnect the testing APP servers from it and remove their access through security groups, etc. 
 9.  Add Production APP Servers SG/NACL rules as needed. 
-10.  Cutover phase. <br> 
-If a database lock is available during the cutover phase, initiate the lock(AZ SQL), then deploy the configuration changes, or change the FQDN in the DNS, depending on how the APP servers are configured. <br>
-Set traffic rules to deny all access on AZ SQL DB. 
-Repeat Steps 8 & 9 .
+10.   Cutover phase. <br> 
+  - If a database lock is available during the cutover phase, initiate the lock(AZ SQL), then deploy the configuration changes, or change the FQDN in the DNS, depending on how the APP servers are configured.
+  - Set traffic rules to deny all access except DMS on AZ SQL DB. 
+  - Repeat Steps 7 & 8.
+  - Remove database lock
+11. Perform security audits and optimize the database as needed.
+12. Fill out migration report comparing with the initial baseline. 
+13. Plan AZ SQL Database/infrastructure deprecation and decomissioning. 
+
+[Back to top](#table-of-contents)
+# Disaster Recovery / Rollback Plan
+If the DB Migration does not go as planned, here are the steps to roll back. 
+
+During the testing phase:
+- Revert connection to the MS SQL Testing DB
+
+During/after the Production cutover phase:
+- Revert connection to the MS SQL Prod DB. Deployments or DNS record changes. 
+- Revert Network traffic to previous state in Azure.
+- Any data written to the AWS RDS DB may be lost, unless identified and copied over manually. 
+
+Running for a few days/months
+- AWS Backup plan should be in place since the creation of the database. 
+- Restore from snapshot from the AWS Backup.
+- Or restore to Point in time. 
+  
 
 
 
+
+[Back to top](#table-of-contents)
