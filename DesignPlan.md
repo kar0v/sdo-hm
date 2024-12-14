@@ -58,6 +58,8 @@ AWS Network
 - DMS 
   ![alt text](images/DesignPlan/image.png)
 
+General design plan:
+
 ![alt text](images/DesignPlan/Azure_to_AWS_MSSQL_Migration.drawio.svg)
 
 Database migration security
